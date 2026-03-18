@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numeracy Level 1 Exam</title>
+    <style>
+        /* BASE & LAYOUT STYLES */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f7f6; 
+            display: flex; 
+            flex-direction: column; /* This forces the footer to go BELOW the container */
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; /* min-height instead of fixed height for mobile scrolling */
+            margin: 0; 
+            padding: 20px; /* Gives breathing room on small phone screens */
+            box-sizing: border-box;
+        }
+
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 450px; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+
+        h2, h3 { color: #333; }
+        .level-badge { display: inline-block; padding: 5px 10px; border-radius: 5px; background-color: #007bff; color: white; font-size: 14px; margin-bottom: 15px; font-weight: bold;}
+        .timer { font-size: 18px; color: #dc3545; font-weight: bold; margin-bottom: 15px; }
+        
+        input[type="text"], input[type="number"] { 
+            width: 100%; /* Changed to 100% to fill the container nicely on mobile */
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+
+        button { background-color: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;}
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .question-text { font-size: 28px; font-weight: bold; margin: 20px 0; }
+        #quiz-section, #result-section, #transition-section { display: none; }
+        
+        /* FOOTER STYLES */
+        .site-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dcdcdc;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            width: 100%;
+            max-width: 450px; /* Matches the main container width */
+        }
+        .footer-logo {
+            max-height: 28px;
+            margin-bottom: 8px;
+        }
+        .footer-brand p {
+            margin: 4px 0;
+            font-weight: 500;
+        }
+        .footer-brand .brand-name {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .footer-contact h4 {
+            font-size: 14px;
+            color: #333;
+            margin: 15px 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .contact-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        .contact-list li a {
+            color: #888;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: color 0.3s ease;
+        }
+        .contact-list li a:hover {
+            color: #007bff;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container" id="app-container">
+    
+    <div id="login-section">
+        <h2>Numeracy Exam - Level 1</h2>
+        <p style="font-size: 14px; color: #dc3545; font-weight: bold;">Strict Anti-Cheat is Active.</p>
+        <p style="font-size: 13px; color: #666;">Do not minimize the tab or refresh the page. Your exam will be instantly terminated.</p>
+        <input type="text" id="student-name" placeholder="Enter Full Name" required>
+        <input type="text" id="student-section" placeholder="Enter Section" required>
+        <button onclick="checkAndStartExam()" id="start-btn">Start Exam</button>
+    </div>
+
+    <div id="transition-section">
+        <h2 id="trans-level-name"></h2>
+        <p id="trans-level-time"></p>
+        <button onclick="startNextSection()">Begin Section</button>
+    </div>
+
+    <div id="quiz-section">
+        <div class="level-badge" id="level-display"></div>
+        <div class="timer" id="timer-display">Time Left: --:--</div>
+        <p>Question <span id="current-q-num"></span> of <span id="total-q-num"></span></p>
+        <div class="question-text" id="question-display"></div>
+        <input type="number" id="answer-input" placeholder="Your Answer" onkeypress="handleEnter(event)">
+        <button onclick="submitAnswer()">Next</button>
+    </div>
+
+    <div id="result-section">
+        <h2>Exam Complete</h2>
+        <h3 id="completion-status" style="color: #dc3545;"></h3>
+        <p>Total Score: <strong id="final-score" style="font-size: 24px;"></strong></p>
+        <p id="saving-status" style="color: #007bff;"></p>
+    </div>
+
+</div>
+
+<footer class="site-footer">
+    <div class="footer-container">
+        
+        <div class="footer-brand">
+            <img src="AppGero.png" alt="AppGero Logo" class="footer-logo">
+            <p>MAEMATH 2214 Portal - Numerical Analysis</p>
+            <p>&copy; <span id="current-year"></span> <span class="brand-name">ApGeroMetrics</span> All rights reserved.</p>
+        </div>
+
+        <div class="footer-contact">
+            <h4>Connect with Us</h4>
+            <ul class="contact-list">
+                <li><a href="https://www.facebook.com/profile.php?id=61561185271842" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a></li>
+                <li><a href="https://github.com/LPEastHub" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="mailto:gerothornz05@gmail.com"><i class="far fa-envelope"></i> Email</a></li>
+                <li><a href="https://www.youtube.com/channel/UCQi6TYsY7t-skLkjQu8l8zg" target="_blank"><i class="fab fa-youtube"></i> YouTube</a></li>
+                <li><a href="tel:09510930117"><i class="fas fa-phone-alt"></i> Phone</a></li>
+            </ul>
+        </div>
+        
+    </div>
+</footer>
+
+<script>
+    // --- SETTINGS ---
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUfbG7CVmvIZRqmIA0UJUTZR7vF5Y9ebPy859sowr57GjEdY9AOByOKMYhppSWcV0Vkg/exec"; // PASTE URL HERE
+
+    // Automatically set the current year in the footer
+    document.getElementById("current-year").innerText = new Date().getFullYear();
+
+    const examStructure = [
+        { name: "EASY", timeLimit: 8 * 60, questions: [{ q: "534 + 372 =", a: 906 }, { q: "286 + 435 =", a: 721 }, { q: "423 + 658 =", a: 1081 }, { q: "823 - 587 =", a: 236 }, { q: "521 x 3 =", a: 1563 }, { q: "625 / 5 =", a: 125 }] },
+        { name: "AVERAGE", timeLimit: 10 * 60, questions: [{ q: "1976 + 3584 =", a: 5560 }, { q: "3150 - 1659 =", a: 1491 }, { q: "8000 - 4638 =", a: 3362 }, { q: "746 x 8 =", a: 5968 }, { q: "225 x 52 =", a: 11700 }, { q: "765 x 68 =", a: 52020 }] },
+        { name: "DIFFICULT", timeLimit: 12 * 60, questions: [{ q: "254 + 143 + 985 =", a: 1382 }, { q: "9035 - 2827 =", a: 6208 }, { q: "765 x 86 =", a: 65790 }, { q: "947 x 48 =", a: 45456 }, { q: "83440 / 20 =", a: 4172 }, { q: "4125 / 11 =", a: 375 }] },
+        { name: "ADVANCE", timeLimit: 5 * 60, questions: [{ q: "83 - 15 + 3 x 5 =", a: 83 }, { q: "130 / 15 x 6 - 32 + 32 =", a: 52 }] }
+    ];
+
+    let studentData = { name: "", section: "" };
+    let currentSectionIndex = 0;
+    let currentQuestionIndex = 0;
+    let sectionScores = { "EASY": 0, "AVERAGE": 0, "DIFFICULT": 0, "ADVANCE": 0 };
+    let sectionTimes = { "EASY": "0m 0s", "AVERAGE": "0m 0s", "DIFFICULT": "0m 0s", "ADVANCE": "0m 0s" };
+    let sectionTimerInterval;
+    let sectionTimeRemaining;
+    let sectionStartTime;
+    let tabWarnings = 0;
+    let examActive = false;
+    let examStatus = "Completed Successfully";
+
+    // --- 0. PAGE REFRESH DETECTION ---
+    window.onload = function() {
+        if (sessionStorage.getItem("examInProgress") === "true") {
+            // Student refreshed the page during an active exam!
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("result-section").style.display = "block";
+            document.getElementById("completion-status").innerText = "Terminated - Page Refresh Detected";
+            document.getElementById("final-score").innerText = "0 / Void";
+            document.getElementById("saving-status").innerText = "Cheating violation recorded.";
+            
+            // Mark as completed so they can't try again
+            let strictID = sessionStorage.getItem("strictStudentID");
+            if(strictID) localStorage.setItem(strictID, "completed");
+            
+            // Send the violation to your Google Sheet
+            studentData.name = sessionStorage.getItem("savedName");
+            studentData.section = sessionStorage.getItem("savedSection");
+            examStatus = "Terminated - Page Refresh";
+            saveScoreToSheets(0);
+            
+            sessionStorage.removeItem("examInProgress");
+        }
+    };
+
+    // Warn before accidental refresh
+    window.addEventListener("beforeunload", function (e) {
+        if (examActive) {
+            e.preventDefault();
+            e.returnValue = "Refreshing will terminate your exam and result in a zero. Are you sure?";
+        }
+    });
+
+    // --- 1. ANTI-CHEATING (Tab Visibility) ---
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && examActive) {
+            tabWarnings++;
+            if (tabWarnings > 2) {
+                alert("You have left the exam tab too many times. Your exam is now terminated.");
+                examStatus = "Terminated - Tab Switching";
+                endExam();
+            } else {
+                alert(`Warning ${tabWarnings}/2: Please stay on this tab. Leaving again will terminate your exam.`);
+            }
+        }
+    });
+
+    // --- 2. START & VALIDATION ---
+    function checkAndStartExam() {
+        const rawName = document.getElementById("student-name").value.trim();
+        const rawSection = document.getElementById("student-section").value.trim();
+
+        if (rawName === "" || rawSection === "") {
+            alert("Please enter both your Name and Section.");
+            return;
+        }
+
+        // Create a strict ID (removes all spaces and makes uppercase to prevent bypassing)
+        const strictID = "num_exam_" + (rawName + rawSection).replace(/\s+/g, '').toUpperCase();
+
+        if (localStorage.getItem(strictID)) {
+            alert("Our records indicate you have already completed this exam. You cannot take it again.");
+            return;
+        }
+
+        studentData.name = rawName.toUpperCase();
+        studentData.section = rawSection.toUpperCase();
+        
+        // Lock the device and set the session trap
+        localStorage.setItem(strictID, "completed");
+        sessionStorage.setItem("examInProgress", "true");
+        sessionStorage.setItem("strictStudentID", strictID);
+        sessionStorage.setItem("savedName", studentData.name);
+        sessionStorage.setItem("savedSection", studentData.section);
+
+        document.getElementById("login-section").style.display = "none";
+        examActive = true;
+        showTransitionScreen();
+    }
+
+    // --- 3. SECTION HANDLING ---
+    function showTransitionScreen() {
+        if (currentSectionIndex >= examStructure.length) {
+            endExam();
+            return;
+        }
+        const currentSection = examStructure[currentSectionIndex];
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("transition-section").style.display = "block";
+        document.getElementById("trans-level-name").innerText = `Next Section: ${currentSection.name}`;
+        document.getElementById("trans-level-time").innerText = `You will have ${currentSection.timeLimit / 60} minutes to complete this section.`;
+    }
+
+    function startNextSection() {
+        document.getElementById("transition-section").style.display = "none";
+        document.getElementById("quiz-section").style.display = "block";
+        currentQuestionIndex = 0;
+        const currentSection = examStructure[currentSectionIndex];
+        sectionTimeRemaining = currentSection.timeLimit;
+        sectionStartTime = Date.now();
+        startTimer();
+        loadQuestion();
+    }
+
+    // --- 4. TIMER ---
+    function startTimer() {
+        clearInterval(sectionTimerInterval);
+        updateTimerDisplay();
+        sectionTimerInterval = setInterval(() => {
+            sectionTimeRemaining--;
+            updateTimerDisplay();
+            if (sectionTimeRemaining <= 0) {
+                clearInterval(sectionTimerInterval);
+                alert("Time is up for this section!");
+                recordSectionTime();
+                currentSectionIndex++;
+                showTransitionScreen();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(sectionTimeRemaining / 60);
+        const seconds = sectionTimeRemaining % 60;
+        document.getElementById("timer-display").innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    function recordSectionTime() {
+        const currentSection = examStructure[currentSectionIndex];
+        const timeSpentSeconds = Math.floor((Date.now() - sectionStartTime) / 1000);
+        const actualSeconds = Math.min(timeSpentSeconds, currentSection.timeLimit); 
+        const m = Math.floor(actualSeconds / 60);
+        const s = actualSeconds % 60;
+        sectionTimes[currentSection.name] = `${m}m ${s}s`;
+    }
+
+    // --- 5. QUESTION HANDLING ---
+    function loadQuestion() {
+        const currentSection = examStructure[currentSectionIndex];
+        const currentQ = currentSection.questions[currentQuestionIndex];
+        document.getElementById("level-display").innerText = currentSection.name;
+        document.getElementById("total-q-num").innerText = currentSection.questions.length;
+        document.getElementById("current-q-num").innerText = currentQuestionIndex + 1;
+        document.getElementById("question-display").innerText = currentQ.q;
+        const answerInput = document.getElementById("answer-input");
+        answerInput.value = "";
+        answerInput.focus();
+    }
+
+    function handleEnter(event) {
+        if (event.key === "Enter") submitAnswer();
+    }
+
+    function submitAnswer() {
+        const userAnswer = document.getElementById("answer-input").value;
+        if (userAnswer === "") return;
+        const currentSection = examStructure[currentSectionIndex];
+        const correctAnswer = currentSection.questions[currentQuestionIndex].a;
+
+        if (parseFloat(userAnswer) === correctAnswer) {
+            sectionScores[currentSection.name]++;
+        }
+
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentSection.questions.length) {
+            loadQuestion();
+        } else {
+            clearInterval(sectionTimerInterval);
+            recordSectionTime();
+            currentSectionIndex++;
+            showTransitionScreen();
+        }
+    }
+
+    // --- 6. FINISHING ---
+    function endExam() {
+        examActive = false;
+        clearInterval(sectionTimerInterval);
+        sessionStorage.removeItem("examInProgress"); // Clear the trap since they finished legitimately
+        
+        if (currentSectionIndex < examStructure.length && examStatus !== "Completed Successfully") {
+             recordSectionTime();
+        }
+
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("transition-section").style.display = "none";
+        document.getElementById("result-section").style.display = "block";
+
+        let totalScore = sectionScores.EASY + sectionScores.AVERAGE + sectionScores.DIFFICULT + sectionScores.ADVANCE;
+        let totalItems = examStructure.reduce((sum, sec) => sum + sec.questions.length, 0);
+
+        if (examStatus !== "Completed Successfully") {
+            document.getElementById("completion-status").innerText = examStatus;
+        }
+        
+        document.getElementById("final-score").innerText = `${totalScore} / ${totalItems}`;
+        document.getElementById("saving-status").innerText = "Saving your score to the database...";
+        
+        saveScoreToSheets(totalScore);
+    }
+
+    function saveScoreToSheets(totalScore) {
+        const payload = {
+            name: studentData.name,
+            section: studentData.section,
+            status: examStatus,
+            totalScore: totalScore,
+            scores: sectionScores,
+            times: sectionTimes
+        };
+
+        fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            document.getElementById("saving-status").innerText = "Scores saved successfully! You may close this tab.";
+            document.getElementById("saving-status").style.color = "green";
+        }).catch((error) => {
+            document.getElementById("saving-status").innerText = "Network error. Score could not be saved to the database.";
+            document.getElementById("saving-status").style.color = "red";
+        });
+    }
+</script>
+</body>
+</html>
